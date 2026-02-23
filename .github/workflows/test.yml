@@ -7,27 +7,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Pull the repository
-      - name: "Checkout Repository"
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup UV
+      - name: Setup uv package manager
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
 
-      - name: Setup Python
+      - name: Setup Python environment
         uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
 
-      - name: Ruff Check
+      - name: Check correctness with ruff
         run: uv run ruff check pneumatic/
 
-      - name: Ruff Format
+      - name: Check formatting with ruff
         run: uv run ruff format --check pneumatic/
 
-      - name: Type-Checking with Ty
+      - name: Check typing with ty
         run: uv run ty check pneumatic/
 
-      - name: Unit Tests
+      - name: Run unit tests
         run: uv run python manage.py test
