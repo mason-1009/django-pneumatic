@@ -1,0 +1,33 @@
+name: Automated Tests
+
+on: [push]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Pull the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup uv package manager
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Check correctness with ruff
+        run: uv run ruff check pneumatic/
+
+      - name: Check formatting with ruff
+        run: uv run ruff format --check pneumatic/
+
+      - name: Check typing with ty
+        run: uv run ty check pneumatic/
+
+      - name: Run unit tests
+        run: uv run python manage.py test
