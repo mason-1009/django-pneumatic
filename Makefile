@@ -16,7 +16,7 @@ format:
 ty:
 	uv run ty check pneumatic
 test:
-	uv run python manage.py test
+	uv run coverage run manage.py test && uv run coverage report
 
 # Runs type-checking, formatting, linting, and unit tests
 check: ruff format ty test
