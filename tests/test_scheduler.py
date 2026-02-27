@@ -1,3 +1,4 @@
+from unittest import mock
 from django.test import TestCase
 
 from pneumatic.models import (
@@ -8,6 +9,8 @@ from pneumatic.models import (
 from pneumatic.scheduler import (
     schedule_inbox,
     schedule_outbox,
+    run_inbox_tasks,
+    run_outbox_tasks,
 )
 from pneumatic.exceptions import (
     InvalidTaskName,
@@ -46,6 +49,23 @@ class SchedulerTestCase(TestCase):
                 task_name='inbox.test', payload={'key': 'value'}
             )
 
+    def test_run_inbox_tasks(self):
+        call_stub = mock.Mock()
+
+        def _schedule(uuid: str, payload: dict[str, Any]) -> None:
+            call_stub()
+
+        Registry.register_inbox(
+            task_name='inbox.test', handler=_schedule
+        )
+        item_uuid = schedule_inbox(
+            task_name='inbox.test', payload={'key': 'value'}
+        )
+
+        run_inbox_tasks()
+
+        call_stub.assert_called_once()
+
     def test_schedule_outbox_success(self):
         def _schedule(uuid: str, payload: dict[str, Any]) -> None:
             ...
@@ -67,3 +87,20 @@ class SchedulerTestCase(TestCase):
             schedule_outbox(
                 task_name='outbox.test', payload={'key': 'value'}
             )
+
+    def test_run_outbox_tasks(self):
+        call_stub = mock.Mock()
+
+        def _schedule(uuid: str, payload: dict[str, Any]) -> None:
+            call_stub()
+
+        Registry.register_outbox(
+            task_name='outbox.test', handler=_schedule
+        )
+        item_uuid = schedule_outbox(
+            task_name='outbox.test', payload={'key': 'value'}
+        )
+
+        run_outbox_tasks()
+
+        call_stub.assert_called_once()
