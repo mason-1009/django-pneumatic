@@ -4,6 +4,20 @@ from typing import Literal
 TaskType = Literal["InboxItem", "OutboxItem"]
 
 
+class InvalidTaskConfig(Exception):
+    """
+    Exception thrown when a task configuration is invalid or incorrect.
+    """
+
+    def __init__(self, invalid_fields: list[str]) -> None:
+        super().__init__(
+            f'Invalid config fields: self._join_fields(invalid_fields)'
+        )
+
+    def _join_fields(self, invalid_fields: list[str]) -> str:
+        return invalid_fields.join(', ')
+
+
 class InvalidTaskName(Exception):
     """
     Thrown when an inbox or outbox message is scheduled for a task name without
