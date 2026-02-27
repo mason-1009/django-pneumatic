@@ -29,5 +29,7 @@ jobs:
       - name: Check typing with ty
         run: uv run ty check pneumatic/
 
-      - name: Run unit tests
-        run: uv run python manage.py test
+      - name: Run unit tests with coverage
+        run: |
+          uv run coverage run manage.py test \
+            && uv run coverage report -m
