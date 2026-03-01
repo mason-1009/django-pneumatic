@@ -8,6 +8,10 @@ from pneumatic.models import (
     InboxItem,
     OutboxItem,
 )
+from pneumatic.config import (
+    ItemConfig,
+    PneumaticConfigContainer,
+)
 
 from typing import Generator, Any
 
@@ -17,19 +21,23 @@ PayloadGenerator = Generator[Payload, None, None]
 
 logger = get_logger(__name__)
 
-# TODO: Pull this from a configuration value/policy
-MAX_FAILURES: int = 3
-
 
 @contextmanager
-def _handle_atomically(item: InboxItem | OutboxItem) -> PayloadGenerator:
+def _handle_atomically(
+    item: InboxItem | OutboxItem, item_config: ItemConfig
+) -> PayloadGenerator:
     with transaction.atomic():
         item.transition_started()
 
         try:
             yield item.payload
-        except Exception:
-            item.record_failure(max_failures=MAX_FAILURES)
+        except Exception as exc:
+            if item_config.exception_is_retryable(exc=exc):
+                item.record_failure(max_failures=item_config.max_retries)
+            else:
+                # Exceptions that are non-retryable are directly transitioned
+                # to failure
+                item.transition_failed()
         else:
             item.transition_completed()
 
@@ -38,7 +46,8 @@ def _handle_atomically(item: InboxItem | OutboxItem) -> PayloadGenerator:
 def handle_inbox(inbox_item_uuid: str | UUID) -> PayloadGenerator:
     inbox_item = InboxItem.objects.get(uuid=inbox_item_uuid)  # type: ignore
 
-    with _handle_atomically(item=inbox_item) as payload:
+    config = PneumaticConfigContainer.get_config().inbox_config
+    with _handle_atomically(item=inbox_item, item_config=config) as payload:
         yield payload
 
 
@@ -46,5 +55,6 @@ def handle_inbox(inbox_item_uuid: str | UUID) -> PayloadGenerator:
 def handle_outbox(outbox_item_uuid: str | UUID) -> PayloadGenerator:
     outbox_item = OutboxItem.objects.get(uuid=outbox_item_uuid)  # type: ignore
 
-    with _handle_atomically(item=outbox_item) as payload:
+    config = PneumaticConfigContainer.get_config().outbox_config
+    with _handle_atomically(item=outbox_item, item_config=config) as payload:
         yield payload

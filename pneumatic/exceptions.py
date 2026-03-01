@@ -4,6 +4,18 @@ from typing import Literal
 TaskType = Literal["InboxItem", "OutboxItem"]
 
 
+class InvalidTaskConfig(Exception):
+    """
+    Exception thrown when a task configuration is invalid or incorrect.
+    """
+
+    def __init__(self, invalid_fields: list[str]) -> None:
+        super().__init__("Invalid config fields: self._join_fields(invalid_fields)")
+
+    def _join_fields(self, invalid_fields: list[str]) -> str:
+        return ", ".join(invalid_fields)
+
+
 class InvalidTaskName(Exception):
     """
     Thrown when an inbox or outbox message is scheduled for a task name without
@@ -32,7 +44,7 @@ class InvalidStateTransition(Exception):
 
     def __init__(self, from_state: str, to_state: str) -> None:
         super().__init__(
-            f"Invalid state: cannot transitionfrom {from_state} to {to_state}"
+            f"Invalid state: cannot transition from {from_state} to {to_state}"
         )
 
         self._from_state = from_state

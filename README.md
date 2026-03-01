@@ -91,6 +91,23 @@ item to a scheduled state for a later retry. After a specified number of
 retries, the item will transition to a failed state. A successful run
 transitions the item to a completed state.
 
+### Configuration
+
+All configuration is done through the main *Django* application's `settings.py`
+file. The following variables modify the behavior of inbox and outbox items:
+
+```python
+PNEUMATIC_INBOX_MAX_RETRIES = 3
+PNEUMATIC_INBOX_RETRYABLE_EXCEPTIONS = [
+    RuntimeError, AnotherCustomException
+]
+
+PNEUMATIC_OUTBOX_MAX_RETRIES = 3
+PNEUMATIC_OUTBOX_RETRYABLE_EXCEPTIONS = [
+    RuntimeError, AnotherCustomException
+]
+```
+
 ## How to Contribute
 
 ### Linters and Tests
