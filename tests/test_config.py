@@ -8,6 +8,7 @@ from pneumatic.config import (
     PneumaticConfig,
     PneumaticConfigContainer,
 )
+from pneumatic.exceptions import InvalidTaskConfig
 
 
 CUSTOM_SETTINGS = {
@@ -62,6 +63,11 @@ class PneumaticConfigTestCase(TestCase):
         self.assertCountEqual(
             config.outbox_config.retryable_exceptions, [RuntimeError]
         )
+
+    @override_settings(PNEUMATIC_INBOX_RETRYABLE_EXCEPTIONS=1)
+    def test_invalid_setting_throws_exception(self):
+        with self.assertRaises(InvalidTaskConfig):
+            PneumaticConfig.from_django_settings()
 
 
 class PneumaticConfigContainerTestCase(TestCase):

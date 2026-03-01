@@ -1,11 +1,15 @@
+from logging import getLogger as get_logger
 from dataclasses import (
     dataclass,
 )
 from django.conf import settings
 
+from pneumatic.exceptions import InvalidTaskConfig
 
 from typing import Self
 
+
+logger = get_logger(__name__)
 
 DEFAULT_MAX_RETRIES: int = 3
 
@@ -62,24 +66,28 @@ class PneumaticConfig:
 
         # TODO: Throw a custom exception for invalid configuration values/types
         # in application settings
-        return cls(
-            inbox_config=ItemConfig(
-                max_retries=getattr(
-                    settings, "PNEUMATIC_INBOX_MAX_RETRIES", DEFAULT_MAX_RETRIES
+        try:
+            return cls(
+                inbox_config=ItemConfig(
+                    max_retries=getattr(
+                        settings, "PNEUMATIC_INBOX_MAX_RETRIES", DEFAULT_MAX_RETRIES
+                    ),
+                    retryable_exceptions=set(
+                        getattr(settings, "PNEUMATIC_INBOX_RETRYABLE_EXCEPTIONS", [])
+                    ),
                 ),
-                retryable_exceptions=set(
-                    getattr(settings, "PNEUMATIC_INBOX_RETRYABLE_EXCEPTIONS", [])
+                outbox_config=ItemConfig(
+                    max_retries=getattr(
+                        settings, "PNEUMATIC_OUTBOX_MAX_RETRIES", DEFAULT_MAX_RETRIES
+                    ),
+                    retryable_exceptions=set(
+                        getattr(settings, "PNEUMATIC_OUTBOX_RETRYABLE_EXCEPTIONS", [])
+                    ),
                 ),
-            ),
-            outbox_config=ItemConfig(
-                max_retries=getattr(
-                    settings, "PNEUMATIC_OUTBOX_MAX_RETRIES", DEFAULT_MAX_RETRIES
-                ),
-                retryable_exceptions=set(
-                    getattr(settings, "PNEUMATIC_OUTBOX_RETRYABLE_EXCEPTIONS", [])
-                ),
-            ),
-        )
+            )
+        except Exception as exc:
+            logger.error(f"Error reading configuration: {str(exc)}")
+            raise InvalidTaskConfig(f"Error from invalid config: {str(exc)}")
 
 
 class PneumaticConfigContainer:
