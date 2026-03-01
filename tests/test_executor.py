@@ -23,7 +23,7 @@ class WithMockConfig(TestCase):
 
         item_config = ItemConfig(
             max_retries=3,
-            retryable_exceptions={Exception, BaseException}
+            retryable_exceptions={ValueError}
         )
 
         self.test_config = PneumaticConfig(
@@ -63,7 +63,7 @@ class HandleInboxTestCase(WithMockConfig):
 
     def test_handle_inbox_one_error(self):
         with handle_inbox(inbox_item_uuid=self.inbox_item.uuid) as _:
-            raise Exception('Test exception')
+            raise ValueError('Test exception')
 
         self.inbox_item.refresh_from_db()
         self.assertEqual(self.inbox_item.status, ItemStatus.SCHEDULED)
@@ -72,11 +72,19 @@ class HandleInboxTestCase(WithMockConfig):
     def test_handle_inbox_max_errors(self):
         for _ in range(3):
             with handle_inbox(inbox_item_uuid=self.inbox_item.uuid) as _:
-                raise Exception('Test exception')
+                raise ValueError('Test exception')
 
         self.inbox_item.refresh_from_db()
         self.assertEqual(self.inbox_item.status, ItemStatus.FAILED)
         self.assertEqual(self.inbox_item.failure_count, 3)
+
+    def test_handle_inbox_non_retryable(self):
+        with handle_inbox(inbox_item_uuid=self.inbox_item.uuid) as _:
+            raise Exception('Immediate failure')
+
+        self.inbox_item.refresh_from_db()
+        self.assertEqual(self.inbox_item.status, ItemStatus.FAILED)
+        self.assertEqual(self.inbox_item.failure_count, 0)
 
 
 class HandleOutboxTestCase(WithMockConfig):
@@ -100,7 +108,7 @@ class HandleOutboxTestCase(WithMockConfig):
 
     def test_handle_outbox_one_error(self):
         with handle_outbox(outbox_item_uuid=self.outbox_item.uuid) as _:
-            raise Exception('Test exception')
+            raise ValueError('Test exception')
 
         self.outbox_item.refresh_from_db()
         self.assertEqual(self.outbox_item.status, ItemStatus.SCHEDULED)
@@ -109,8 +117,16 @@ class HandleOutboxTestCase(WithMockConfig):
     def test_handle_outbox_max_errors(self):
         for _ in range(3):
             with handle_outbox(outbox_item_uuid=self.outbox_item.uuid) as _:
-                raise Exception('Test exception')
+                raise ValueError('Test exception')
 
         self.outbox_item.refresh_from_db()
         self.assertEqual(self.outbox_item.status, ItemStatus.FAILED)
         self.assertEqual(self.outbox_item.failure_count, 3)
+
+    def test_handle_outbox_non_retryable(self):
+        with handle_outbox(outbox_item_uuid=self.outbox_item.uuid) as _:
+            raise Exception('Immediate failure')
+
+        self.outbox_item.refresh_from_db()
+        self.assertEqual(self.outbox_item.status, ItemStatus.FAILED)
+        self.assertEqual(self.outbox_item.failure_count, 0)
