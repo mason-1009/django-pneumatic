@@ -10,12 +10,10 @@ class InvalidTaskConfig(Exception):
     """
 
     def __init__(self, invalid_fields: list[str]) -> None:
-        super().__init__(
-            f'Invalid config fields: self._join_fields(invalid_fields)'
-        )
+        super().__init__("Invalid config fields: self._join_fields(invalid_fields)")
 
     def _join_fields(self, invalid_fields: list[str]) -> str:
-        return invalid_fields.join(', ')
+        return ", ".join(invalid_fields)
 
 
 class InvalidTaskName(Exception):
@@ -46,7 +44,7 @@ class InvalidStateTransition(Exception):
 
     def __init__(self, from_state: str, to_state: str) -> None:
         super().__init__(
-            f"Invalid state: cannot transitionfrom {from_state} to {to_state}"
+            f"Invalid state: cannot transition from {from_state} to {to_state}"
         )
 
         self._from_state = from_state

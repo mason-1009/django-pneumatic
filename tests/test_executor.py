@@ -1,4 +1,5 @@
 from django.test import TestCase
+from unittest import mock
 
 from pneumatic.models import (
     ItemStatus,
@@ -9,9 +10,39 @@ from pneumatic.executor import (
     handle_inbox,
     handle_outbox,
 )
+from pneumatic.config import (
+    ItemConfig,
+    PneumaticConfig,
+    PneumaticConfigContainer,
+)
 
 
-class HandleInboxTestCase(TestCase):
+class WithMockConfig(TestCase):
+    def setUp(self):
+        super().setUp()
+
+        item_config = ItemConfig(
+            max_retries=3,
+            retryable_exceptions={Exception, BaseException}
+        )
+
+        self.test_config = PneumaticConfig(
+            inbox_config=item_config,
+            outbox_config=item_config
+        )
+
+        self.patcher = mock.patch.object(
+            PneumaticConfigContainer,
+            'get_config', return_value=self.test_config
+        )
+        self.patcher.start()
+
+    def tearDown(self):
+        super().tearDown()
+        self.patcher.stop()
+
+
+class HandleInboxTestCase(WithMockConfig):
     def setUp(self):
         super().setUp()
 
@@ -48,7 +79,7 @@ class HandleInboxTestCase(TestCase):
         self.assertEqual(self.inbox_item.failure_count, 3)
 
 
-class HandleOutboxTestCase(TestCase):
+class HandleOutboxTestCase(WithMockConfig):
     def setUp(self):
         super().setUp()
 
