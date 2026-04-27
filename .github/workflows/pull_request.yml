@@ -1,0 +1,14 @@
+name: Pull Request Checks
+
+on: [pull_request]
+
+jobs:
+  check-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure semantic release format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo $PR_TITLE | grep --silent -E \
+            '^(chore|patch|fix|feat|breaking): .*$'
