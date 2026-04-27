@@ -9,4 +9,6 @@ jobs:
       - name: Ensure semantic release format
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: grep --silent -E '^(chore|patch|fix|feat|breaking): .*$'
+        run: |
+          echo $PR_TITLE | grep --silent -E \
+            '^(chore|patch|fix|feat|breaking): .*$'
