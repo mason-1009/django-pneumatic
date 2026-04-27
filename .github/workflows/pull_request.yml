@@ -11,4 +11,4 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo $PR_TITLE | grep --silent -E \
-            '^(chore|patch|fix|feat|breaking): .*$'
+            '^(chore|patch|fix|feat|breaking)\(.*\): .*$'
