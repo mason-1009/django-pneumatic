@@ -6,6 +6,12 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "uv version ${nextRelease.version}"
+      }
+    ],
     "@semantic-release/git"
   ]
 }
