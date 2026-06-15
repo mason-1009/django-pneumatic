@@ -4,7 +4,20 @@
     "master"
   ],
   "plugins": [
-    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          { "type": "patch", "release": "patch" },
+          { "type": "chore", "release": "patch" },
+          { "type": "refactor", "release": "patch" },
+          { "type": "fix", "release": "minor" },
+          { "type": "feat", "release": "minor" },
+          { "type": "breaking", "release": "major" }
+        ]
+      }
+    ],
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/exec",
