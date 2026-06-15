@@ -14,6 +14,14 @@ persisted in a database to ensure reliable delivery.
 The `django-pneumatic` library uses atomic transactions to ensure that data
 enters and exits your application reliably.
 
+## Installation
+
+Install with your favorite package manager from *PyPi*:
+
+```bash
+pip install django-pneumatic
+```
+
 ## Usage
 
 ### Register
